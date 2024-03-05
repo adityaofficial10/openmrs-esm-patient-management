@@ -1,8 +1,9 @@
 import { showModal } from '@openmrs/esm-framework';
-import { FormikProps } from 'formik';
-import { ClientRegistryPatient, RegistryPatient } from './verification-types';
+import { type FormikProps } from 'formik';
+import { type ClientRegistryPatient, type RegistryPatient } from './verification-types';
 import counties from './assets/counties.json';
-import { FormValues } from '../patient-registration/patient-registration.types';
+import { type FormValues } from '../patient-registration/patient-registration.types';
+import { capitalize } from 'lodash-es';
 
 export function handleClientRegistryResponse(
   clientResponse: ClientRegistryPatient,
@@ -61,7 +62,7 @@ export function handleClientRegistryResponse(
         required: false,
         identifierTypeUuid: '49af6cdc-7968-4abb-bf46-de10d7f4859f',
         identifierName: 'National ID',
-        identifierValue: identifications !== undefined && identifications[0]?.identificationNumber,
+        identifierValue: identifications !== undefined && identifications[0]?.identificationNumber?.trim(),
       },
 
       ['nationalUniquePatientIdentifier']: {
@@ -80,10 +81,10 @@ export function handleClientRegistryResponse(
       onConfirm: () => {
         props.setValues({
           ...props.values,
-          familyName: lastName,
-          middleName: middleName,
-          givenName: firstName,
-          gender: gender === 'male' ? 'Male' : 'Female',
+          familyName: lastName?.trim() ?? '',
+          middleName: middleName?.trim() ?? '',
+          givenName: firstName.trim() ?? '',
+          gender: clientResponse.client.gender,
           birthdate: new Date(dateOfBirth),
           isDead: !isAlive,
           attributes: {
@@ -94,9 +95,9 @@ export function handleClientRegistryResponse(
           address: {
             address1: residence?.address,
             address2: '',
-            address4: residence?.ward,
+            address4: capitalize(residence?.ward ?? ''),
             cityVillage: residence?.village,
-            stateProvince: residence?.subCounty,
+            stateProvince: capitalize(residence?.subCounty ?? ''),
             countyDistrict: counties.find((county) => county.code === parseInt(residence?.county))?.name,
             country: 'Kenya',
             postalCode: residence?.address,
@@ -104,14 +105,21 @@ export function handleClientRegistryResponse(
           identifiers: { ...props.values.identifiers, ...nupiIdentifiers },
           obs: {
             '1054AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA':
-              props.values.concepts.find((concept) => concept.display?.toLowerCase() === maritalStatus?.toLowerCase())
-                ?.uuid ?? '',
+              props.values.concepts.find(
+                (concept) =>
+                  concept.display?.toLowerCase()?.includes(clientResponse.client.maritalStatus?.toLowerCase()),
+              )?.uuid ?? '',
             '1712AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA':
-              props.values.concepts.find((concept) => concept.display?.toLowerCase() === educationLevel?.toLowerCase())
-                ?.uuid ?? '',
+              props.values.concepts.find(
+                (concept) =>
+                  concept.display?.toLowerCase()?.includes(clientResponse.client.educationLevel?.toLowerCase()),
+              )?.uuid ?? '',
             '1542AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA':
-              props.values.concepts.find((concept) => concept.display?.toLowerCase() === occupation?.toLowerCase())
-                ?.uuid ?? '',
+              clientResponse.client.occupation === undefined || clientResponse.client.occupation === null
+                ? '1107AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+                : props.values.concepts.find(
+                    (concept) => concept.display?.toLowerCase() === clientResponse.client.occupation?.toLowerCase(),
+                  )?.uuid ?? '5622AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
           },
         });
         dispose();

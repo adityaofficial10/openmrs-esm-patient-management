@@ -237,7 +237,7 @@ export const PatientRegistration: React.FC<PatientRegistrationProps> = ({ savePa
                   initialFormValues: props.initialValues,
                   setInitialFormValues,
                 }}>
-                <PatientVerification props={props} />
+                <PatientVerification props={props} setInitialFormValues={setInitialFormValues} />
                 {sections.map((section, index) => (
                   <SectionWrapper
                     key={`registration-section-${section.id}`}
