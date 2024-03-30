@@ -59,7 +59,7 @@ jest.mock('../../hooks/usePatientAppointmentHistory', () => ({
 }));
 
 jest.mock('../../hooks/usePatientDetails', () => ({
-  usePatientAppointmentHistory: () => ({
+  usePatientDetails: () => ({
     patientDetails: {
       dateOfBirth: '22-Mar-2020',
     },
@@ -74,7 +74,7 @@ test('renders appointment details correctly', () => {
   expect(getByText('35')).toBeInTheDocument();
   expect(getByText('Gender :')).toBeInTheDocument();
   expect(getByText('Male')).toBeInTheDocument();
-  expect(getByText('Date of birth')).toBeInTheDocument();
+  expect(getByText('Date of birth :')).toBeInTheDocument();
   expect(getByText('Appointment Notes')).toBeInTheDocument();
   expect(getByText('Some comments')).toBeInTheDocument();
   expect(getByText('Appointment History')).toBeInTheDocument();
